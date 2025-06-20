@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Score } from "./page";
+import { Score } from "./types";
 import clsx from "clsx";
 import { christmasFontNormal } from "../fonts";
 

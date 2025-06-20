@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { start } from "./game";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ScoreBoard } from "./scoreboard";
 import { Button } from "@/components/ui/button";
@@ -9,13 +8,7 @@ import { UnplugIcon } from "lucide-react";
 import Link from "next/link";
 import { useAgoraVoice } from "@/lib/useAgoraVoice";
 import { useNickname } from "@/lib/useNickname";
-
-export type Score = {
-  kills: number;
-  deaths: number;
-  player: string;
-  nickname: string;
-};
+import { Score } from "./types";
 
 export default function Game() {
   const params = useSearchParams();
@@ -28,34 +21,48 @@ export default function Game() {
   const roomId = params.get("roomId") || "default";
   const { isMuted, mute, unmute, micVolume } = useAgoraVoice(roomId, nickname);
 
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure that the code is only executed on the client side
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   useEffect(() => {
     const roomId = params.get("roomId");
     if (!roomId) return;
 
-    const game = start({
-      roomId,
-      onScoresUpdated(newScores: Score[]) {
-        setScores(newScores);
-      },
-      onGameOver(winner: string) {
-        router.push(`/game-over?winner=${winner}`);
-      },
-      onDisconnect() {
-        router.push(`/disconnect`);
-      },
-      onTimeLeft(newTimeLeft) {
-        setTimeLeft(newTimeLeft);
-      },
-      setLatency,
-      playerIdRef,
-    });
-
-    return () => {
-      game.then(({ cleanup }) => {
-        cleanup();
+    let cleanupFn: (() => void) | undefined;
+    import("./game").then(({ start }) => {
+      const game = start({
+        roomId,
+        onScoresUpdated(newScores: Score[]) {
+          setScores(newScores);
+        },
+        onGameOver(winner: string) {
+          router.push(`/game-over?winner=${winner}`);
+        },
+        onDisconnect() {
+          router.push(`/disconnect`);
+        },
+        onTimeLeft(newTimeLeft) {
+          setTimeLeft(newTimeLeft);
+        },
+        setLatency,
+        playerIdRef,
       });
+      game.then(({ cleanup }) => {
+        cleanupFn = cleanup;
+      });
+    });
+    return () => {
+      if (cleanupFn) cleanupFn();
     };
   }, [params]);
+
+  if (!isClient) {
+    return null; // Or you can render a loading spinner or skeleton while the component is mounting
+  }
 
   return (
     <main className="relative">

@@ -1,9 +1,11 @@
 import io from "socket.io-client";
 import { USE_LOCAL_WS } from "@/config";
 import { getConnectionInfo } from "@/api/room";
-import { Score } from "./page";
+import { Score } from "./types";
 import { MutableRefObject } from "react";
 import { getNickname } from "@/lib/utils";
+
+// Only type definitions and utility functions at the top level
 
 type Player = {
   id: string;
@@ -48,6 +50,12 @@ export async function start({
   setLatency: (latency: number) => void;
   playerIdRef: MutableRefObject<any>;
 }) {
+  // All browser-specific code is now inside this function
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    // Not running in the browser, do nothing
+    return { cleanup: () => {} };
+  }
+
   let isRunning = true;
   const connectionInfo = await getConnectionInfo(roomId);
 
@@ -60,24 +68,28 @@ export async function start({
     connectionInfo.exposedPort?.port
   }?roomId=${roomId}&nickname=${getNickname()}`;
 
-  const mapImage = new Image();
+  const mapImage = new window.Image();
   mapImage.src = "/snowy-sheet.png";
 
-  const santaImage = new Image();
+  const santaImage = new window.Image();
   santaImage.src = "/santa.png";
 
-  const crosshair = new Image();
+  const crosshair = new window.Image();
   crosshair.src = "/crosshair.png";
 
-  const crosshairArmed = new Image();
+  const crosshairArmed = new window.Image();
   crosshairArmed.src = "/crosshair-armed.png";
 
-  const santaLeftImage = new Image();
+  const santaLeftImage = new window.Image();
   santaLeftImage.src = "/santa-left.png";
 
-  const walkSnow = new Audio("walk-snow.mp3");
+  const walkSnow = new window.Audio("walk-snow.mp3");
 
   const canvasEl = document.getElementById("canvas") as HTMLCanvasElement;
+  if (!canvasEl) {
+    // Canvas not found, do nothing
+    return { cleanup: () => {} };
+  }
 
   canvasEl.width = window.innerWidth;
   canvasEl.height = window.innerHeight;

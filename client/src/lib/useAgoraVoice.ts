@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import AgoraRTC, { IAgoraRTCClient, ILocalAudioTrack } from "agora-rtc-sdk-ng";
+import type { IAgoraRTCClient, ILocalAudioTrack } from "agora-rtc-sdk-ng";
 
 const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID as string;
 
@@ -17,6 +17,7 @@ export function useAgoraVoice(roomId: string, userId: string) {
     let animationId: number;
 
     const joinVoice = async () => {
+      const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
       const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
       clientRef.current = client;
       const token = null;
@@ -56,6 +57,9 @@ export function useAgoraVoice(roomId: string, userId: string) {
     };
     joinVoice();
     return () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
       localAudioTrackRef.current?.close();
       clientRef.current?.leave();
       if (analyser) {
@@ -64,7 +68,6 @@ export function useAgoraVoice(roomId: string, userId: string) {
       if (audioCtx) {
         audioCtx.close();
       }
-      cancelAnimationFrame(animationId);
     };
   }, [roomId, userId]);
 
