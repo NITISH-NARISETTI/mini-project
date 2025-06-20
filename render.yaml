@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: snowball-battle-server
+    env: node
+    repo: https://github.com/codyseibert/snowball-fight-online.git # OPTIONAL: Your repo URL
+    rootDir: ./server
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 8000 
