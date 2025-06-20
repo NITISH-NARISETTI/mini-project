@@ -22,16 +22,22 @@ async function main() {
     const roomId = socket.handshake.query.roomId as string;
     const nickname = socket.handshake.query.nickname as string;
 
-    if (!rooms.has(roomId)) {
-      const roomInfo = await getRoomInfo(roomId);
-      const roomConfig = JSON.parse(roomInfo.roomConfig!);
-      const room = await createRoom(roomId, roomConfig, () => {
-        rooms.delete(roomId);
-      });
-      rooms.set(roomId, room);
-    }
+    try {
+      if (!rooms.has(roomId)) {
+        const roomInfo = await getRoomInfo(roomId);
+        const roomConfig = JSON.parse(roomInfo.roomConfig!);
+        const room = await createRoom(roomId, roomConfig, () => {
+          rooms.delete(roomId);
+        });
+        rooms.set(roomId, room);
+      }
 
-    rooms.get(roomId).onConnect(socket, nickname);
+      rooms.get(roomId).onConnect(socket, nickname);
+    } catch (err) {
+      console.error(`Error during onConnect for ${socket.id}:`, err);
+      socket.disconnect();
+      return;
+    }
 
     socket.on("disconnect", async () => {
       console.log(`Player disconnected: ${socket.id}`);

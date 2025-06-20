@@ -1,29 +1,23 @@
-import {
-  Room,
-  UpdateRoomConfigParams,
-} from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
-import { hathoraSdk } from "../lib/hathora";
+// Hathora removed. Replace room functions with local stubs.
 
-export async function updateRoomConfig(
-  config: UpdateRoomConfigParams,
-  roomId: string
-) {
-  const response = await hathoraSdk.roomV2.updateRoomConfig(config, roomId);
-
-  if (response.statusCode !== 200) {
-    throw new Error(`could not update the room config for room ${roomId}`);
-  }
+export async function updateRoomConfig(config: any, roomId: string) {
+  // No-op stub
+  return { statusCode: 200 };
 }
 
-export async function getRoomInfo(roomId: string): Promise<Room> {
-  const response = await hathoraSdk.roomV2.getRoomInfo(roomId);
-  const room = response.room;
-  if (!room) {
-    throw new Error(`room of ${roomId} not found`);
-  }
-  return room;
+export async function getRoomInfo(roomId: string) {
+  // Return a stub room config for any roomId
+  return {
+    roomConfig: JSON.stringify({
+      winningScore: 10,
+      capacity: 8,
+      numberOfPlayers: 0,
+      roomName: roomId,
+    }),
+  };
 }
 
 export async function destroyRoom(roomId: string) {
-  await hathoraSdk.roomV2.destroyRoom(roomId);
+  // No-op stub
+  return;
 }
